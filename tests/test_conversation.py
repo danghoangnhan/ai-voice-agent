@@ -1,11 +1,11 @@
 """Tests for conversation state machine"""
 
 import pytest
+
 from src.agent.conversation import (
     Conversation,
     ConversationState,
     ConversationStateMachine,
-    Contact,
 )
 
 

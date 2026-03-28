@@ -1,10 +1,10 @@
 """Script to simulate a voice call flow"""
 
 import asyncio
-import json
-from src.webhooks.handlers import WebhookEventHandler
+
 from src.agent.intent_router import IntentRouter
 from src.utils.logger import configure_logging, get_logger
+from src.webhooks.handlers import WebhookEventHandler
 
 configure_logging()
 logger = get_logger(__name__)
@@ -19,9 +19,9 @@ async def simulate_call():
     call_id = "sim_call_001"
     phone_number = "+1-555-0123"
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("AI VOICE AGENT - CALL SIMULATION")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     # 1. Call started
     print("1. CALL STARTED")
@@ -81,16 +81,14 @@ async def simulate_call():
 
     # Extract entities
     print("6. ENTITY EXTRACTION")
-    entities = await intent_router.extract_entities(
-        f"{user_message} {user_name_msg}"
-    )
+    entities = await intent_router.extract_entities(f"{user_message} {user_name_msg}")
     print(f"   Extracted Name: {entities.get('name', 'N/A')}")
     print(f"   Extracted Email: {entities.get('email', 'N/A')}")
     print(f"   Extracted Phone: {entities.get('phone', 'N/A')}\n")
 
     # Update conversation
-    if entities.get('name'):
-        conversation.contact.name = entities['name']
+    if entities.get("name"):
+        conversation.contact.name = entities["name"]
     else:
         conversation.contact.name = "John Smith"
 
@@ -132,9 +130,9 @@ async def simulate_call():
     print(f"    Messages: {summary['message_count']}")
     print(f"    Duration: {summary['duration_seconds']:.1f} seconds\n")
 
-    print("="*60)
+    print("=" * 60)
     print("SIMULATION COMPLETE")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
 
 if __name__ == "__main__":

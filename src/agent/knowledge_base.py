@@ -1,7 +1,8 @@
 """RAG (Retrieval-Augmented Generation) knowledge base for agent"""
 
-from typing import Optional, List, Dict, Any
 from abc import ABC, abstractmethod
+from typing import Any
+
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -11,14 +12,12 @@ class KnowledgeBase(ABC):
     """Abstract base class for knowledge base implementations"""
 
     @abstractmethod
-    async def retrieve(self, query: str, top_k: int = 5) -> List[str]:
+    async def retrieve(self, query: str, top_k: int = 5) -> list[str]:
         """Retrieve relevant documents for a query"""
-        pass
 
     @abstractmethod
-    async def add_document(self, content: str, metadata: Optional[Dict[str, Any]] = None):
+    async def add_document(self, content: str, metadata: dict[str, Any] | None = None):
         """Add a document to the knowledge base"""
-        pass
 
 
 class SimpleKnowledgeBase(KnowledgeBase):
@@ -26,7 +25,7 @@ class SimpleKnowledgeBase(KnowledgeBase):
 
     def __init__(self):
         """Initialize knowledge base"""
-        self.documents: List[Dict[str, Any]] = []
+        self.documents: list[dict[str, Any]] = []
         self._load_default_knowledge()
 
     def _load_default_knowledge(self):
@@ -58,7 +57,7 @@ class SimpleKnowledgeBase(KnowledgeBase):
             self.documents.append(doc)
             logger.info("Loaded knowledge document", category=doc["metadata"].get("category"))
 
-    async def retrieve(self, query: str, top_k: int = 5) -> List[str]:
+    async def retrieve(self, query: str, top_k: int = 5) -> list[str]:
         """Retrieve relevant documents for a query"""
         query_lower = query.lower()
         scored_docs = []
@@ -76,14 +75,16 @@ class SimpleKnowledgeBase(KnowledgeBase):
         logger.info("Retrieved knowledge documents", query=query[:50], count=len(results))
         return results
 
-    async def add_document(self, content: str, metadata: Optional[Dict[str, Any]] = None):
+    async def add_document(self, content: str, metadata: dict[str, Any] | None = None):
         """Add a document to the knowledge base"""
         doc = {
             "content": content,
             "metadata": metadata or {},
         }
         self.documents.append(doc)
-        logger.info("Added knowledge document", category=metadata.get("category") if metadata else None)
+        logger.info(
+            "Added knowledge document", category=metadata.get("category") if metadata else None
+        )
 
     def _calculate_relevance(self, query: str, content: str) -> float:
         """Simple keyword-based relevance scoring"""
@@ -107,14 +108,15 @@ class LLMKnowledgeBase(KnowledgeBase):
         """Initialize LLM knowledge base"""
         try:
             from openai import AsyncOpenAI
+
             self.client = AsyncOpenAI(api_key=api_key)
-            self.documents: List[Dict[str, Any]] = []
-            self.embeddings: Dict[str, List[float]] = {}
+            self.documents: list[dict[str, Any]] = []
+            self.embeddings: dict[str, list[float]] = {}
             logger.info("Initialized LLM knowledge base")
         except ImportError:
             raise ImportError("OpenAI client required for LLMKnowledgeBase")
 
-    async def retrieve(self, query: str, top_k: int = 5) -> List[str]:
+    async def retrieve(self, query: str, top_k: int = 5) -> list[str]:
         """Retrieve relevant documents using embeddings"""
         if not self.documents:
             return []
@@ -129,6 +131,7 @@ class LLMKnowledgeBase(KnowledgeBase):
 
             # Calculate similarities
             import numpy as np
+
             similarities = []
 
             for i, doc in enumerate(self.documents):
@@ -152,7 +155,7 @@ class LLMKnowledgeBase(KnowledgeBase):
             logger.error("Failed to retrieve documents via embeddings", error=str(e))
             return []
 
-    async def add_document(self, content: str, metadata: Optional[Dict[str, Any]] = None):
+    async def add_document(self, content: str, metadata: dict[str, Any] | None = None):
         """Add a document and compute its embedding"""
         try:
             response = await self.client.embeddings.create(
@@ -164,7 +167,10 @@ class LLMKnowledgeBase(KnowledgeBase):
             self.documents.append({"content": content, "metadata": metadata or {}})
             self.embeddings[content] = embedding
 
-            logger.info("Added document with embedding", category=metadata.get("category") if metadata else None)
+            logger.info(
+                "Added document with embedding",
+                category=metadata.get("category") if metadata else None,
+            )
 
         except Exception as e:
             logger.error("Failed to add document", error=str(e))
@@ -178,7 +184,6 @@ class KnowledgeBaseFactory:
         """Create a knowledge base instance"""
         if kb_type == "simple":
             return SimpleKnowledgeBase()
-        elif kb_type == "llm":
+        if kb_type == "llm":
             return LLMKnowledgeBase(**kwargs)
-        else:
-            return SimpleKnowledgeBase()
+        return SimpleKnowledgeBase()

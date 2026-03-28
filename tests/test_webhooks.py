@@ -1,6 +1,7 @@
 """Tests for webhook handlers"""
 
 import pytest
+
 from src.webhooks.handlers import WebhookEventHandler
 
 

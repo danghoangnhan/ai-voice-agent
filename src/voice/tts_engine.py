@@ -1,8 +1,8 @@
 """Text-to-Speech abstraction layer"""
 
 from abc import ABC, abstractmethod
-from typing import Optional
 from enum import Enum
+
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -10,6 +10,7 @@ logger = get_logger(__name__)
 
 class TTSProvider(str, Enum):
     """Supported TTS providers"""
+
     GOOGLE = "google"
     AZURE = "azure"
     OPENAI = "openai"
@@ -20,9 +21,8 @@ class TTSEngine(ABC):
     """Abstract base class for TTS engines"""
 
     @abstractmethod
-    async def synthesize(self, text: str, voice_id: Optional[str] = None) -> bytes:
+    async def synthesize(self, text: str, voice_id: str | None = None) -> bytes:
         """Synthesize text to speech"""
-        pass
 
 
 class OpenAITTSEngine(TTSEngine):
@@ -36,7 +36,7 @@ class OpenAITTSEngine(TTSEngine):
         self.model = model
         self.voice = voice
 
-    async def synthesize(self, text: str, voice_id: Optional[str] = None) -> bytes:
+    async def synthesize(self, text: str, voice_id: str | None = None) -> bytes:
         """Synthesize text using OpenAI"""
         try:
             response = await self.client.audio.speech.create(
@@ -62,7 +62,7 @@ class ElevenLabsTTSEngine(TTSEngine):
         self.voice_id = voice_id
         self.client = httpx.AsyncClient()
 
-    async def synthesize(self, text: str, voice_id: Optional[str] = None) -> bytes:
+    async def synthesize(self, text: str, voice_id: str | None = None) -> bytes:
         """Synthesize text using ElevenLabs"""
         try:
             url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id or self.voice_id}"
@@ -81,7 +81,7 @@ class ElevenLabsTTSEngine(TTSEngine):
 class MockTTSEngine(TTSEngine):
     """Mock TTS engine for testing"""
 
-    async def synthesize(self, text: str, voice_id: Optional[str] = None) -> bytes:
+    async def synthesize(self, text: str, voice_id: str | None = None) -> bytes:
         """Return mock audio bytes"""
         logger.info("Mock TTS synthesize called", text_length=len(text))
         return b"mock_audio_data"
@@ -95,7 +95,6 @@ class TTSFactory:
         """Create a TTS engine instance"""
         if provider == TTSProvider.OPENAI:
             return OpenAITTSEngine(**kwargs)
-        elif provider == TTSProvider.ELEVEN_LABS:
+        if provider == TTSProvider.ELEVEN_LABS:
             return ElevenLabsTTSEngine(**kwargs)
-        else:
-            return MockTTSEngine()
+        return MockTTSEngine()

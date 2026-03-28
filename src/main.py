@@ -1,20 +1,19 @@
 """FastAPI application entry point"""
 
-from fastapi import FastAPI, HTTPException, Header
+from typing import Any
+
+import uvicorn
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
-import uvicorn
-import json
 
+from src.agent.intent_router import IntentRouter
 from src.config import settings
+from src.integrations.calendar import CalendarFactory
 from src.utils.logger import configure_logging, get_logger
-from src.webhooks.handlers import WebhookEventHandler
 from src.voice.retell_client import RetellAIClient
 from src.voice.vapi_client import VapiAIClient
-from src.agent.intent_router import IntentRouter
-from src.agent.conversation import Conversation, ConversationStateMachine
-from src.integrations.calendar import CalendarFactory
+from src.webhooks.handlers import WebhookEventHandler
 
 # Configure logging
 configure_logging()
@@ -47,43 +46,48 @@ logger.info("AI Voice Agent initialized", version="0.1.0", env=settings.app_env)
 # Pydantic models
 class RetellWebhook(BaseModel):
     """Retell AI webhook payload"""
+
     type: str
-    callId: Optional[str] = None
-    phoneNumber: Optional[str] = None
-    message: Optional[str] = None
-    timestamp: Optional[str] = None
+    callId: str | None = None
+    phoneNumber: str | None = None
+    message: str | None = None
+    timestamp: str | None = None
 
 
 class VapiWebhook(BaseModel):
     """Vapi AI webhook payload"""
+
     type: str
-    call_id: Optional[str] = None
-    phone_number: Optional[str] = None
-    transcript: Optional[str] = None
+    call_id: str | None = None
+    phone_number: str | None = None
+    transcript: str | None = None
 
 
 class GHLWebhook(BaseModel):
     """GoHighLevel webhook payload"""
+
     event: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
 
 
 class CreateCallRequest(BaseModel):
     """Request to create a voice call"""
+
     phone_number: str
     provider: str = "retell"  # retell or vapi
-    assistant_id: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    assistant_id: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class ConversationResponse(BaseModel):
     """Conversation response model"""
+
     conversation_id: str
     state: str
-    contact: Dict[str, Any]
-    intent: Optional[str] = None
+    contact: dict[str, Any]
+    intent: str | None = None
     message_count: int
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 # Health check endpoint
@@ -127,7 +131,7 @@ async def vapi_webhook(webhook: VapiWebhook):
 @app.post("/webhooks/ghl")
 async def ghl_webhook(
     webhook: GHLWebhook,
-    x_webhook_signature: Optional[str] = Header(None),
+    x_webhook_signature: str | None = Header(None),
 ):
     """Handle GoHighLevel webhooks"""
     logger.info("Received GHL webhook", event_type=webhook.event)
@@ -165,7 +169,7 @@ async def create_call(request: CreateCallRequest):
                 "call": result,
             }
 
-        elif request.provider == "vapi":
+        if request.provider == "vapi":
             if not settings.vapi_api_key:
                 raise ValueError("Vapi configuration missing")
 
@@ -182,8 +186,7 @@ async def create_call(request: CreateCallRequest):
                 "provider": "vapi",
                 "call": result,
             }
-        else:
-            raise ValueError(f"Unknown provider: {request.provider}")
+        raise ValueError(f"Unknown provider: {request.provider}")
 
     except Exception as e:
         logger.error("Failed to create call", error=str(e))

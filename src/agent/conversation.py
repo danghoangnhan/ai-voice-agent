@@ -1,9 +1,10 @@
 """Conversation state machine for voice agent"""
 
-from enum import Enum
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Any
+
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -11,6 +12,7 @@ logger = get_logger(__name__)
 
 class ConversationState(str, Enum):
     """Conversation state enumeration"""
+
     GREETING = "greeting"
     QUALIFICATION = "qualification"
     BOOKING = "booking"
@@ -21,35 +23,39 @@ class ConversationState(str, Enum):
 @dataclass
 class Contact:
     """Contact information"""
-    name: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    company: Optional[str] = None
+
+    name: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    company: str | None = None
 
 
 @dataclass
 class Conversation:
     """Conversation state and data"""
+
     conversation_id: str
     state: ConversationState = ConversationState.GREETING
     contact: Contact = field(default_factory=Contact)
-    intent: Optional[str] = None
-    qualification_data: Dict[str, Any] = field(default_factory=dict)
-    appointment: Optional[Dict[str, Any]] = None
-    messages: List[Dict[str, str]] = field(default_factory=list)
+    intent: str | None = None
+    qualification_data: dict[str, Any] = field(default_factory=dict)
+    appointment: dict[str, Any] | None = None
+    messages: list[dict[str, str]] = field(default_factory=list)
     started_at: datetime = field(default_factory=datetime.utcnow)
-    ended_at: Optional[datetime] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    ended_at: datetime | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def add_message(self, role: str, content: str):
         """Add a message to conversation history"""
-        self.messages.append({
-            "role": role,
-            "content": content,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        self.messages.append(
+            {
+                "role": role,
+                "content": content,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert conversation to dictionary"""
         return {
             "conversation_id": self.conversation_id,
@@ -85,7 +91,9 @@ class ConversationStateMachine:
     def transition_to_qualification(self):
         """Transition to qualification state"""
         self.conversation.state = ConversationState.QUALIFICATION
-        logger.info("Transitioned to QUALIFICATION", conversation_id=self.conversation.conversation_id)
+        logger.info(
+            "Transitioned to QUALIFICATION", conversation_id=self.conversation.conversation_id
+        )
 
     def transition_to_booking(self):
         """Transition to booking state"""
@@ -107,15 +115,21 @@ class ConversationStateMachine:
         """Check if transition is allowed"""
         current = self.conversation.state
         allowed_transitions = {
-            ConversationState.GREETING: [ConversationState.QUALIFICATION, ConversationState.FAREWELL],
-            ConversationState.QUALIFICATION: [ConversationState.BOOKING, ConversationState.FAREWELL],
+            ConversationState.GREETING: [
+                ConversationState.QUALIFICATION,
+                ConversationState.FAREWELL,
+            ],
+            ConversationState.QUALIFICATION: [
+                ConversationState.BOOKING,
+                ConversationState.FAREWELL,
+            ],
             ConversationState.BOOKING: [ConversationState.FAREWELL, ConversationState.ENDED],
             ConversationState.FAREWELL: [ConversationState.ENDED],
             ConversationState.ENDED: [],
         }
         return target_state in allowed_transitions.get(current, [])
 
-    def get_conversation_summary(self) -> Dict[str, Any]:
+    def get_conversation_summary(self) -> dict[str, Any]:
         """Get conversation summary"""
         duration = None
         if self.conversation.ended_at:

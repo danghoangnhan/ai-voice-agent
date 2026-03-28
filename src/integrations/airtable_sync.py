@@ -1,7 +1,9 @@
 """Airtable CRM synchronization"""
 
+from typing import Any
+
 import httpx
-from typing import Optional, Dict, Any, List
+
 from src.config import settings
 from src.utils.logger import get_logger
 
@@ -13,7 +15,7 @@ class AirtableSyncClient:
 
     BASE_URL = "https://api.airtable.com/v0"
 
-    def __init__(self, api_key: Optional[str] = None, base_id: Optional[str] = None):
+    def __init__(self, api_key: str | None = None, base_id: str | None = None):
         """Initialize Airtable client"""
         self.api_key = api_key or settings.airtable_api_key
         self.base_id = base_id or settings.airtable_base_id
@@ -27,7 +29,7 @@ class AirtableSyncClient:
             timeout=30.0,
         )
 
-    async def create_lead(self, lead_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_lead(self, lead_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new lead record"""
         table_name = settings.airtable_leads_table
 
@@ -49,7 +51,7 @@ class AirtableSyncClient:
             logger.error("Failed to create Airtable lead", error=str(e))
             raise
 
-    async def update_lead(self, lead_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_lead(self, lead_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """Update an existing lead record"""
         table_name = settings.airtable_leads_table
 
@@ -72,7 +74,7 @@ class AirtableSyncClient:
             logger.error("Failed to update Airtable lead", error=str(e))
             raise
 
-    async def get_lead(self, lead_id: str) -> Dict[str, Any]:
+    async def get_lead(self, lead_id: str) -> dict[str, Any]:
         """Get a lead record"""
         table_name = settings.airtable_leads_table
 
@@ -84,7 +86,7 @@ class AirtableSyncClient:
             logger.error("Failed to get Airtable lead", error=str(e))
             raise
 
-    async def create_call_record(self, call_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_call_record(self, call_data: dict[str, Any]) -> dict[str, Any]:
         """Create a call record"""
         table_name = settings.airtable_calls_table
 
@@ -106,7 +108,7 @@ class AirtableSyncClient:
             logger.error("Failed to create Airtable call record", error=str(e))
             raise
 
-    async def update_call_record(self, call_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_call_record(self, call_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """Update a call record"""
         table_name = settings.airtable_calls_table
 
@@ -129,7 +131,7 @@ class AirtableSyncClient:
             logger.error("Failed to update Airtable call record", error=str(e))
             raise
 
-    async def list_leads(self, filters: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def list_leads(self, filters: str | None = None) -> list[dict[str, Any]]:
         """List all leads, optionally filtered"""
         table_name = settings.airtable_leads_table
 

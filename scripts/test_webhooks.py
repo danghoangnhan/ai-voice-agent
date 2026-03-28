@@ -1,9 +1,9 @@
 """Script to test webhook endpoints"""
 
-import httpx
-import json
 import asyncio
-from typing import Dict, Any
+import json
+
+import httpx
 
 BASE_URL = "http://localhost:8000"
 
@@ -129,9 +129,9 @@ async def test_calendar_availability():
 
 async def test_all():
     """Run all webhook tests"""
-    print("="*60)
+    print("=" * 60)
     print("AI VOICE AGENT - WEBHOOK TESTS")
-    print("="*60)
+    print("=" * 60)
 
     try:
         await test_health_check()
@@ -146,9 +146,9 @@ async def test_all():
         print("\nMake sure the FastAPI server is running:")
         print("  uvicorn src.main:app --reload")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("TESTS COMPLETE")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
 
 if __name__ == "__main__":

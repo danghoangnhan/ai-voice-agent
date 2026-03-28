@@ -1,7 +1,9 @@
 """Retell AI API client wrapper"""
 
+from typing import Any
+
 import httpx
-from typing import Optional, Dict, Any
+
 from src.config import settings
 from src.utils.logger import get_logger
 
@@ -13,7 +15,7 @@ class RetellAIClient:
 
     BASE_URL = "https://api.retellai.com/v2"
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize Retell AI client"""
         self.api_key = api_key or settings.retell_api_key
         if not self.api_key:
@@ -28,9 +30,9 @@ class RetellAIClient:
     async def create_web_call(
         self,
         agent_id: str,
-        user_phone_number: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        user_phone_number: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Create a new web call"""
         payload = {
             "agent_id": agent_id,
@@ -48,7 +50,7 @@ class RetellAIClient:
             logger.error("Failed to create Retell web call", error=str(e))
             raise
 
-    async def get_call(self, call_id: str) -> Dict[str, Any]:
+    async def get_call(self, call_id: str) -> dict[str, Any]:
         """Get call details"""
         try:
             response = await self.client.get(f"/call/{call_id}")
@@ -58,23 +60,17 @@ class RetellAIClient:
             logger.error("Failed to get Retell call", call_id=call_id, error=str(e))
             raise
 
-    async def list_calls(
-        self, limit: int = 10, offset: int = 0
-    ) -> Dict[str, Any]:
+    async def list_calls(self, limit: int = 10, offset: int = 0) -> dict[str, Any]:
         """List recent calls"""
         try:
-            response = await self.client.get(
-                "/call", params={"limit": limit, "offset": offset}
-            )
+            response = await self.client.get("/call", params={"limit": limit, "offset": offset})
             response.raise_for_status()
             return response.json()
         except httpx.HTTPError as e:
             logger.error("Failed to list Retell calls", error=str(e))
             raise
 
-    async def update_agent(
-        self, agent_id: str, updates: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def update_agent(self, agent_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """Update agent configuration"""
         try:
             response = await self.client.patch(f"/agent/{agent_id}", json=updates)

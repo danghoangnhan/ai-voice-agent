@@ -1,7 +1,8 @@
 """Tests for intent detection and routing"""
 
 import pytest
-from src.agent.intent_router import IntentRouter, Intent
+
+from src.agent.intent_router import Intent, IntentRouter
 
 
 @pytest.fixture
@@ -48,9 +49,7 @@ async def test_mock_intent_general_inquiry(intent_router):
 @pytest.mark.asyncio
 async def test_route_conversation_schedule_appointment(intent_router):
     """Test conversation routing for appointment"""
-    routing = await intent_router.route_conversation(
-        Intent.SCHEDULE_APPOINTMENT, {"user": "test"}
-    )
+    routing = await intent_router.route_conversation(Intent.SCHEDULE_APPOINTMENT, {"user": "test"})
 
     assert routing["intent"] == "schedule_appointment"
     assert routing["next_state"] == "booking"

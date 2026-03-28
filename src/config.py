@@ -1,8 +1,8 @@
 """Configuration management for the AI Voice Agent"""
 
-from pydantic_settings import BaseSettings
-from typing import Optional
 import os
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -15,30 +15,30 @@ class Settings(BaseSettings):
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
 
     # Retell AI Configuration
-    retell_api_key: Optional[str] = os.getenv("RETELL_API_KEY")
-    retell_agent_id: Optional[str] = os.getenv("RETELL_AGENT_ID")
+    retell_api_key: str | None = os.getenv("RETELL_API_KEY")
+    retell_agent_id: str | None = os.getenv("RETELL_AGENT_ID")
 
     # Vapi AI Configuration
-    vapi_api_key: Optional[str] = os.getenv("VAPI_API_KEY")
-    vapi_phone_number: Optional[str] = os.getenv("VAPI_PHONE_NUMBER")
+    vapi_api_key: str | None = os.getenv("VAPI_API_KEY")
+    vapi_phone_number: str | None = os.getenv("VAPI_PHONE_NUMBER")
 
     # GoHighLevel Configuration
-    ghl_api_key: Optional[str] = os.getenv("GHL_API_KEY")
-    ghl_account_id: Optional[str] = os.getenv("GHL_ACCOUNT_ID")
-    ghl_webhook_secret: Optional[str] = os.getenv("GHL_WEBHOOK_SECRET")
+    ghl_api_key: str | None = os.getenv("GHL_API_KEY")
+    ghl_account_id: str | None = os.getenv("GHL_ACCOUNT_ID")
+    ghl_webhook_secret: str | None = os.getenv("GHL_WEBHOOK_SECRET")
 
     # Airtable Configuration
-    airtable_api_key: Optional[str] = os.getenv("AIRTABLE_API_KEY")
-    airtable_base_id: Optional[str] = os.getenv("AIRTABLE_BASE_ID")
+    airtable_api_key: str | None = os.getenv("AIRTABLE_API_KEY")
+    airtable_base_id: str | None = os.getenv("AIRTABLE_BASE_ID")
     airtable_leads_table: str = os.getenv("AIRTABLE_LEADS_TABLE", "Leads")
     airtable_calls_table: str = os.getenv("AIRTABLE_CALLS_TABLE", "Calls")
 
     # Calendar Configuration
     calendar_service: str = os.getenv("CALENDAR_SERVICE", "google")
-    calendar_api_key: Optional[str] = os.getenv("CALENDAR_API_KEY")
+    calendar_api_key: str | None = os.getenv("CALENDAR_API_KEY")
 
     # OpenAI Configuration
-    openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
+    openai_api_key: str | None = os.getenv("OPENAI_API_KEY")
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4")
 
     # Database Configuration

@@ -1,9 +1,10 @@
 """Webhook event handlers"""
 
-from typing import Dict, Any, Optional
+from typing import Any
+
 from src.agent.conversation import Conversation, ConversationStateMachine
-from src.integrations.ghl_webhook import GoHighLevelWebhookHandler
 from src.integrations.airtable_sync import AirtableSyncClient
+from src.integrations.ghl_webhook import GoHighLevelWebhookHandler
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -15,39 +16,37 @@ class WebhookEventHandler:
     def __init__(self):
         """Initialize webhook event handler"""
         self.ghl_webhook_handler = GoHighLevelWebhookHandler()
-        self.conversations: Dict[str, Conversation] = {}
+        self.conversations: dict[str, Conversation] = {}
 
-    async def handle_retell_webhook(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_retell_webhook(self, event: dict[str, Any]) -> dict[str, Any]:
         """Handle Retell AI webhook event"""
         event_type = event.get("type")
         logger.info("Processing Retell webhook", event_type=event_type)
 
         if event_type == "call_started":
             return await self._handle_call_started(event)
-        elif event_type == "call_ended":
+        if event_type == "call_ended":
             return await self._handle_call_ended(event)
-        elif event_type == "transcript":
+        if event_type == "transcript":
             return await self._handle_transcript(event)
-        else:
-            logger.warning("Unknown Retell event type", event_type=event_type)
-            return {"status": "ignored", "event_type": event_type}
+        logger.warning("Unknown Retell event type", event_type=event_type)
+        return {"status": "ignored", "event_type": event_type}
 
-    async def handle_vapi_webhook(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_vapi_webhook(self, event: dict[str, Any]) -> dict[str, Any]:
         """Handle Vapi AI webhook event"""
         event_type = event.get("type")
         logger.info("Processing Vapi webhook", event_type=event_type)
 
         if event_type == "call.started":
             return await self._handle_call_started(event)
-        elif event_type == "call.ended":
+        if event_type == "call.ended":
             return await self._handle_call_ended(event)
-        elif event_type == "call.transcript_update":
+        if event_type == "call.transcript_update":
             return await self._handle_transcript(event)
-        else:
-            logger.warning("Unknown Vapi event type", event_type=event_type)
-            return {"status": "ignored", "event_type": event_type}
+        logger.warning("Unknown Vapi event type", event_type=event_type)
+        return {"status": "ignored", "event_type": event_type}
 
-    async def handle_ghl_webhook(self, event_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_ghl_webhook(self, event_type: str, data: dict[str, Any]) -> dict[str, Any]:
         """Handle GoHighLevel webhook event"""
         logger.info("Processing GHL webhook", event_type=event_type)
 
@@ -56,13 +55,12 @@ class WebhookEventHandler:
 
         if action == "contact_created":
             return await self._handle_contact_created(parsed_event)
-        elif action == "appointment_scheduled":
+        if action == "appointment_scheduled":
             return await self._handle_appointment_scheduled(parsed_event)
-        else:
-            logger.warning("Unknown GHL action", action=action)
-            return {"status": "processed", "action": action}
+        logger.warning("Unknown GHL action", action=action)
+        return {"status": "processed", "action": action}
 
-    async def _handle_call_started(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_call_started(self, event: dict[str, Any]) -> dict[str, Any]:
         """Handle call started event"""
         call_id = event.get("callId") or event.get("call_id")
         phone_number = event.get("phoneNumber") or event.get("phone_number")
@@ -84,7 +82,7 @@ class WebhookEventHandler:
             "state": "greeting",
         }
 
-    async def _handle_call_ended(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_call_ended(self, event: dict[str, Any]) -> dict[str, Any]:
         """Handle call ended event"""
         call_id = event.get("callId") or event.get("call_id")
         logger.info("Call ended", call_id=call_id)
@@ -103,7 +101,9 @@ class WebhookEventHandler:
                     "Contact Phone": conversation.contact.phone,
                     "Contact Email": conversation.contact.email,
                     "Intent": conversation.intent or "unknown",
-                    "Duration": (conversation.ended_at - conversation.started_at).total_seconds() if conversation.ended_at else 0,
+                    "Duration": (conversation.ended_at - conversation.started_at).total_seconds()
+                    if conversation.ended_at
+                    else 0,
                     "Status": conversation.state.value,
                     "Message Count": len(conversation.messages),
                 }
@@ -118,7 +118,7 @@ class WebhookEventHandler:
             "state": "ended",
         }
 
-    async def _handle_transcript(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_transcript(self, event: dict[str, Any]) -> dict[str, Any]:
         """Handle transcript/message event"""
         call_id = event.get("callId") or event.get("call_id")
         message = event.get("message") or event.get("transcript")
@@ -136,7 +136,7 @@ class WebhookEventHandler:
             "message_logged": True,
         }
 
-    async def _handle_contact_created(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_contact_created(self, event: dict[str, Any]) -> dict[str, Any]:
         """Handle contact created event from GHL"""
         logger.info("Contact created from GHL", contact_id=event.get("contact_id"))
 
@@ -161,7 +161,7 @@ class WebhookEventHandler:
             "contact_id": event.get("contact_id"),
         }
 
-    async def _handle_appointment_scheduled(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_appointment_scheduled(self, event: dict[str, Any]) -> dict[str, Any]:
         """Handle appointment scheduled event"""
         logger.info(
             "Appointment scheduled",
@@ -175,11 +175,11 @@ class WebhookEventHandler:
             "appointment_id": event.get("appointment_id"),
         }
 
-    def get_conversation(self, conversation_id: str) -> Optional[Conversation]:
+    def get_conversation(self, conversation_id: str) -> Conversation | None:
         """Get conversation by ID"""
         return self.conversations.get(conversation_id)
 
-    def get_conversation_summary(self, conversation_id: str) -> Optional[Dict[str, Any]]:
+    def get_conversation_summary(self, conversation_id: str) -> dict[str, Any] | None:
         """Get conversation summary"""
         conversation = self.get_conversation(conversation_id)
         if conversation:

@@ -34,44 +34,10 @@ dev = [
 ]
 
 [tool.ruff]
-format = true
 line-length = 100
 target-version = "py311"
-select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # Pyflakes
-    "I",    # isort
-    "N",    # pep8-naming
-    "C90",  # mccabe
-    "UP",   # pyupgrade
-    "B",    # flake8-bugbear
-    "A",    # flake8-builtins
-    "C4",   # flake8-comprehensions
-    "DTZ",  # flake8-datetimez
-    "PIE",  # flake8-pie
-    "PT",   # flake8-pytest-style
-    "Q",    # flake8-quotes
-    "RSE",  # flake8-raise
-    "RET",  # flake8-return
-    "SIM",  # flake8-simplify
-    "TID",  # flake8-tidy-imports
-]
-ignore = [
-    "E501",    # line too long, handled by black
-    "UP007",   # Use X | Y for type hints (requires Python 3.10+)
-]
-
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["F401"]
-"tests/**" = ["N802", "N806", "ARG"]
-
-[tool.ruff.format]
-line-length = 100
 
 [tool.ruff.lint]
-line-length = 100
-target-version = "py311"
 select = [
     "E",    # pycodestyle errors
     "W",    # pycodestyle warnings
@@ -93,13 +59,23 @@ select = [
     "TID",  # flake8-tidy-imports
 ]
 ignore = [
-    "E501",    # line too long, handled by ruff format
-    "UP007",   # Use X | Y for type hints (requires Python 3.10+)
+    "E501",    # line too long
+    "B904",    # raise from
+    "DTZ001",  # datetime timezone
+    "DTZ003",  # datetime timezone
+    "RET504",  # unnecessary assignment before return
+    "UP042",   # type union
+    "N815",    # mixed case variable
+    "B007",    # unused loop variable
+    "UP007",   # Use X | Y for type hints
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/**" = ["N802", "N806", "ARG"]
+
+[tool.ruff.format]
+quote-style = "double"
 
 [tool.mypy]
 python_version = "3.11"

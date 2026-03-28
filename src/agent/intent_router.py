@@ -1,7 +1,8 @@
 """Intent detection and routing using LLM"""
 
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any
+
 from src.config import settings
 from src.utils.logger import get_logger
 
@@ -10,6 +11,7 @@ logger = get_logger(__name__)
 
 class Intent(str, Enum):
     """Supported intents"""
+
     SCHEDULE_APPOINTMENT = "schedule_appointment"
     GENERAL_INQUIRY = "general_inquiry"
     PRODUCT_INFO = "product_info"
@@ -25,12 +27,13 @@ class IntentRouter:
         """Initialize intent router"""
         try:
             from openai import AsyncOpenAI
+
             self.client = AsyncOpenAI(api_key=settings.openai_api_key)
         except ImportError:
             logger.warning("OpenAI client not initialized, using mock routing")
             self.client = None
 
-    async def detect_intent(self, text: str, context: Optional[Dict[str, Any]] = None) -> Intent:
+    async def detect_intent(self, text: str, context: dict[str, Any] | None = None) -> Intent:
         """Detect intent from user message using LLM"""
         if not self.client:
             return self._mock_intent_detection(text)
@@ -74,20 +77,19 @@ Respond with just the intent name, nothing else."""
         """Mock intent detection for testing"""
         text_lower = text.lower()
 
-        if any(word in text_lower for word in ["schedule", "book", "appointment", "meeting", "call"]):
+        if any(
+            word in text_lower for word in ["schedule", "book", "appointment", "meeting", "call"]
+        ):
             return Intent.SCHEDULE_APPOINTMENT
-        elif any(word in text_lower for word in ["info", "tell", "what", "how"]):
+        if any(word in text_lower for word in ["info", "tell", "what", "how"]):
             return Intent.PRODUCT_INFO
-        elif any(word in text_lower for word in ["help", "support", "issue", "problem", "broken"]):
+        if any(word in text_lower for word in ["help", "support", "issue", "problem", "broken"]):
             return Intent.SUPPORT_REQUEST
-        elif any(word in text_lower for word in ["callback", "call me back"]):
+        if any(word in text_lower for word in ["callback", "call me back"]):
             return Intent.CALLBACK
-        else:
-            return Intent.GENERAL_INQUIRY
+        return Intent.GENERAL_INQUIRY
 
-    async def route_conversation(
-        self, intent: Intent, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def route_conversation(self, intent: Intent, context: dict[str, Any]) -> dict[str, Any]:
         """Route conversation based on detected intent"""
         routing_map = {
             Intent.SCHEDULE_APPOINTMENT: {"next_state": "booking", "priority": "high"},
@@ -109,8 +111,8 @@ Respond with just the intent name, nothing else."""
         }
 
     async def extract_entities(
-        self, text: str, entity_types: Optional[list[str]] = None
-    ) -> Dict[str, Any]:
+        self, text: str, entity_types: list[str] | None = None
+    ) -> dict[str, Any]:
         """Extract named entities from text"""
         if not self.client:
             return self._mock_entity_extraction(text)
@@ -118,7 +120,7 @@ Respond with just the intent name, nothing else."""
         try:
             entity_types = entity_types or ["name", "email", "phone", "company"]
 
-            prompt = f"""Extract these entity types from the text: {', '.join(entity_types)}
+            prompt = f"""Extract these entity types from the text: {", ".join(entity_types)}
 Return as JSON with entity type as key and extracted value or null.
 Example: {{"name": "John", "email": "john@example.com", "phone": null, "company": "Acme"}}
 
@@ -132,15 +134,16 @@ Text: {text}"""
             )
 
             import json
+
             entities = json.loads(response.choices[0].message.content)
             logger.info("Extracted entities", entities=entities)
             return entities
 
         except Exception as e:
             logger.error("Failed to extract entities", error=str(e))
-            return {entity_type: None for entity_type in (entity_types or [])}
+            return dict.fromkeys(entity_types or [])
 
-    def _mock_entity_extraction(self, text: str) -> Dict[str, Any]:
+    def _mock_entity_extraction(self, text: str) -> dict[str, Any]:
         """Mock entity extraction for testing"""
         return {
             "name": None,

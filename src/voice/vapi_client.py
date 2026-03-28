@@ -1,7 +1,9 @@
 """Vapi AI API client wrapper"""
 
+from typing import Any
+
 import httpx
-from typing import Optional, Dict, Any, List
+
 from src.config import settings
 from src.utils.logger import get_logger
 
@@ -13,7 +15,7 @@ class VapiAIClient:
 
     BASE_URL = "https://api.vapi.ai"
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize Vapi AI client"""
         self.api_key = api_key or settings.vapi_api_key
         if not self.api_key:
@@ -32,8 +34,8 @@ class VapiAIClient:
         self,
         phone_number: str,
         assistant_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Create an outbound phone call"""
         payload = {
             "phoneNumber": phone_number,
@@ -50,7 +52,7 @@ class VapiAIClient:
             logger.error("Failed to create Vapi phone call", error=str(e))
             raise
 
-    async def get_call(self, call_id: str) -> Dict[str, Any]:
+    async def get_call(self, call_id: str) -> dict[str, Any]:
         """Get call details"""
         try:
             response = await self.client.get(f"/call/{call_id}")
@@ -60,21 +62,17 @@ class VapiAIClient:
             logger.error("Failed to get Vapi call", call_id=call_id, error=str(e))
             raise
 
-    async def list_calls(
-        self, limit: int = 10, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    async def list_calls(self, limit: int = 10, offset: int = 0) -> list[dict[str, Any]]:
         """List recent calls"""
         try:
-            response = await self.client.get(
-                "/call", params={"limit": limit, "offset": offset}
-            )
+            response = await self.client.get("/call", params={"limit": limit, "offset": offset})
             response.raise_for_status()
             return response.json()
         except httpx.HTTPError as e:
             logger.error("Failed to list Vapi calls", error=str(e))
             raise
 
-    async def end_call(self, call_id: str) -> Dict[str, Any]:
+    async def end_call(self, call_id: str) -> dict[str, Any]:
         """End an active call"""
         try:
             response = await self.client.post(f"/call/{call_id}/end")
@@ -85,9 +83,7 @@ class VapiAIClient:
             logger.error("Failed to end Vapi call", error=str(e))
             raise
 
-    async def update_assistant(
-        self, assistant_id: str, updates: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def update_assistant(self, assistant_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """Update assistant configuration"""
         try:
             response = await self.client.patch(f"/assistant/{assistant_id}", json=updates)
@@ -98,7 +94,7 @@ class VapiAIClient:
             logger.error("Failed to update Vapi assistant", error=str(e))
             raise
 
-    async def get_assistant(self, assistant_id: str) -> Dict[str, Any]:
+    async def get_assistant(self, assistant_id: str) -> dict[str, Any]:
         """Get assistant configuration"""
         try:
             response = await self.client.get(f"/assistant/{assistant_id}")

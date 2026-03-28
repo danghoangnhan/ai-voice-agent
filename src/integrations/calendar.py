@@ -1,8 +1,9 @@
 """Calendar integration for appointment booking"""
 
-from typing import Optional, Dict, Any, List
-from datetime import datetime
 from abc import ABC, abstractmethod
+from datetime import datetime
+from typing import Any
+
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -14,23 +15,25 @@ class CalendarProvider(ABC):
     @abstractmethod
     async def check_availability(
         self, date: datetime, duration_minutes: int
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Check availability for a date"""
-        pass
 
     @abstractmethod
     async def book_appointment(
-        self, contact_name: str, contact_email: str, start_time: datetime,
-        duration_minutes: int, title: str
-    ) -> Dict[str, Any]:
+        self,
+        contact_name: str,
+        contact_email: str,
+        start_time: datetime,
+        duration_minutes: int,
+        title: str,
+    ) -> dict[str, Any]:
         """Book an appointment"""
-        pass
 
 
 class GoogleCalendarProvider(CalendarProvider):
     """Google Calendar integration"""
 
-    def __init__(self, credentials_path: Optional[str] = None):
+    def __init__(self, credentials_path: str | None = None):
         """Initialize Google Calendar provider"""
         self.credentials_path = credentials_path
         self.service = None
@@ -38,7 +41,7 @@ class GoogleCalendarProvider(CalendarProvider):
 
     async def check_availability(
         self, date: datetime, duration_minutes: int
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Check availability for a date"""
         # This is a mock implementation for the POC
         # In production, use Google Calendar API to check real availability
@@ -72,7 +75,7 @@ class GoogleCalendarProvider(CalendarProvider):
         start_time: datetime,
         duration_minutes: int,
         title: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Book an appointment on Google Calendar"""
         logger.info(
             "Booking Google Calendar appointment",
@@ -103,7 +106,7 @@ class MockCalendarProvider(CalendarProvider):
 
     async def check_availability(
         self, date: datetime, duration_minutes: int
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Return mock availability slots"""
         logger.info("Mock: Checking availability", date=date.isoformat())
 
@@ -124,7 +127,7 @@ class MockCalendarProvider(CalendarProvider):
         start_time: datetime,
         duration_minutes: int,
         title: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Book a mock appointment"""
         logger.info(
             "Mock: Booking appointment",
@@ -154,7 +157,6 @@ class CalendarFactory:
         """Create a calendar provider instance"""
         if provider_type == "google":
             return GoogleCalendarProvider(**kwargs)
-        elif provider_type == "mock":
+        if provider_type == "mock":
             return MockCalendarProvider()
-        else:
-            return MockCalendarProvider()
+        return MockCalendarProvider()

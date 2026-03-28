@@ -1,9 +1,11 @@
 """GoHighLevel webhook handler and API client"""
 
-import hmac
 import hashlib
+import hmac
+from typing import Any
+
 import httpx
-from typing import Optional, Dict, Any
+
 from src.config import settings
 from src.utils.logger import get_logger
 
@@ -13,7 +15,7 @@ logger = get_logger(__name__)
 class GoHighLevelWebhookHandler:
     """Handler for GoHighLevel webhooks"""
 
-    def __init__(self, webhook_secret: Optional[str] = None):
+    def __init__(self, webhook_secret: str | None = None):
         """Initialize webhook handler"""
         self.webhook_secret = webhook_secret or settings.ghl_webhook_secret
 
@@ -39,23 +41,22 @@ class GoHighLevelWebhookHandler:
             logger.error("Failed to verify webhook signature", error=str(e))
             return False
 
-    def parse_webhook_event(self, event_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    def parse_webhook_event(self, event_type: str, data: dict[str, Any]) -> dict[str, Any]:
         """Parse and process webhook event"""
         logger.info("Processing GHL webhook", event_type=event_type)
 
         if event_type == "contact.created":
             return self._handle_contact_created(data)
-        elif event_type == "contact.updated":
+        if event_type == "contact.updated":
             return self._handle_contact_updated(data)
-        elif event_type == "appointment.scheduled":
+        if event_type == "appointment.scheduled":
             return self._handle_appointment_scheduled(data)
-        elif event_type == "conversation.message":
+        if event_type == "conversation.message":
             return self._handle_conversation_message(data)
-        else:
-            logger.warning("Unknown webhook event type", event_type=event_type)
-            return {"event_type": event_type, "data": data}
+        logger.warning("Unknown webhook event type", event_type=event_type)
+        return {"event_type": event_type, "data": data}
 
-    def _handle_contact_created(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_contact_created(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle contact created event"""
         logger.info("Contact created", contact_id=data.get("contactId"))
         return {
@@ -66,7 +67,7 @@ class GoHighLevelWebhookHandler:
             "email": data.get("email"),
         }
 
-    def _handle_contact_updated(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_contact_updated(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle contact updated event"""
         logger.info("Contact updated", contact_id=data.get("contactId"))
         return {
@@ -75,7 +76,7 @@ class GoHighLevelWebhookHandler:
             "updates": data.get("updates", {}),
         }
 
-    def _handle_appointment_scheduled(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_appointment_scheduled(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle appointment scheduled event"""
         logger.info("Appointment scheduled", appointment_id=data.get("appointmentId"))
         return {
@@ -86,7 +87,7 @@ class GoHighLevelWebhookHandler:
             "title": data.get("title"),
         }
 
-    def _handle_conversation_message(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_conversation_message(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle conversation message event"""
         logger.info("Conversation message", conversation_id=data.get("conversationId"))
         return {
@@ -102,7 +103,7 @@ class GoHighLevelAPIClient:
 
     BASE_URL = "https://api.gohighlevel.com/v1"
 
-    def __init__(self, api_key: Optional[str] = None, account_id: Optional[str] = None):
+    def __init__(self, api_key: str | None = None, account_id: str | None = None):
         """Initialize GHL API client"""
         self.api_key = api_key or settings.ghl_api_key
         self.account_id = account_id or settings.ghl_account_id
@@ -119,7 +120,7 @@ class GoHighLevelAPIClient:
             timeout=30.0,
         )
 
-    async def create_contact(self, contact_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_contact(self, contact_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new contact"""
         payload = {
             "firstName": contact_data.get("first_name", ""),
@@ -142,7 +143,7 @@ class GoHighLevelAPIClient:
             logger.error("Failed to create GHL contact", error=str(e))
             raise
 
-    async def update_contact(self, contact_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_contact(self, contact_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """Update a contact"""
         payload = {
             "firstName": updates.get("first_name"),
@@ -167,19 +168,17 @@ class GoHighLevelAPIClient:
             logger.error("Failed to update GHL contact", error=str(e))
             raise
 
-    async def get_contact(self, contact_id: str) -> Dict[str, Any]:
+    async def get_contact(self, contact_id: str) -> dict[str, Any]:
         """Get contact details"""
         try:
-            response = await self.client.get(
-                f"/contacts/{contact_id}?accountId={self.account_id}"
-            )
+            response = await self.client.get(f"/contacts/{contact_id}?accountId={self.account_id}")
             response.raise_for_status()
             return response.json()
         except httpx.HTTPError as e:
             logger.error("Failed to get GHL contact", error=str(e))
             raise
 
-    async def schedule_appointment(self, appointment_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def schedule_appointment(self, appointment_data: dict[str, Any]) -> dict[str, Any]:
         """Schedule an appointment"""
         payload = {
             "contactId": appointment_data.get("contact_id"),

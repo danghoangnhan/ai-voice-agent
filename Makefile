@@ -1,34 +1,30 @@
-.PHONY: help install format lint test clean all
+.PHONY: help sync format lint test clean all
 
 help:
 	@echo "Available targets:"
-	@echo "  install    - Install dependencies"
-	@echo "  format     - Format code with black and isort"
-	@echo "  lint       - Run linting checks (black, isort, ruff, mypy)"
+	@echo "  sync       - Sync dependencies with uv"
+	@echo "  format     - Format code with ruff"
+	@echo "  lint       - Run linting checks (ruff, mypy)"
 	@echo "  test       - Run pytest with coverage"
 	@echo "  clean      - Remove build artifacts and cache files"
-	@echo "  all        - Run format, lint, and test"
+	@echo "  all        - Run sync, format, lint, and test"
 
-install:
-	pip install -r requirements.txt
-	pip install -e ".[dev]"
+sync:
+	uv sync --dev
 
 format:
-	black src/ tests/ scripts/
-	isort src/ tests/ scripts/
+	uv run ruff format src/ tests/ scripts/
 
 lint:
-	@echo "Running black..."
-	black --check src/ tests/ scripts/
-	@echo "Running isort..."
-	isort --check-only src/ tests/ scripts/
-	@echo "Running ruff..."
-	ruff check src/ tests/ scripts/
+	@echo "Running ruff format check..."
+	uv run ruff format --check src/ tests/ scripts/
+	@echo "Running ruff check..."
+	uv run ruff check src/ tests/ scripts/
 	@echo "Running mypy..."
-	mypy src/
+	uv run mypy src/
 
 test:
-	pytest tests/ --cov=src/ --cov-report=html --cov-report=term-missing
+	uv run pytest tests/ --cov=src/ --cov-report=html --cov-report=term-missing
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
@@ -39,4 +35,4 @@ clean:
 	find . -type f -name coverage.xml -delete
 	rm -rf build/ dist/ *.egg-info/
 
-all: format lint test
+all: sync format lint test

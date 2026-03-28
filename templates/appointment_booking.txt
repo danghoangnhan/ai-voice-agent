@@ -1,0 +1,11 @@
+# Appointment Booking Template
+
+Great! It sounds like we could be a perfect fit. Let me schedule a time for you to speak with one of our team members.
+
+What days work best for you this week? We have availability on:
+- Monday through Friday
+- 9 AM to 5 PM Eastern Time
+
+Are you looking for a quick 15-minute intro call or a full 30-minute consultation?
+
+Once you let me know your preference, I'll get that scheduled and send you a calendar invite with all the details, including a video call link.

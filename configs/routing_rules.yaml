@@ -1,0 +1,77 @@
+routing_rules:
+  schedule_appointment:
+    priority: "high"
+    state_transition: "qualification -> booking"
+    required_fields:
+      - preferred_date
+      - preferred_time
+    max_attempts: 2
+    escalation_to_human: true
+
+  product_inquiry:
+    priority: "medium"
+    state_transition: "qualification -> qualification"
+    required_fields:
+      - product_interest
+    follow_up_needed: true
+
+  support_request:
+    priority: "high"
+    state_transition: "qualification -> support"
+    required_fields:
+      - issue_description
+    escalation_to_human: true
+    max_resolution_time_minutes: 15
+
+  general_inquiry:
+    priority: "low"
+    state_transition: "qualification -> qualification"
+    required_fields: []
+
+lead_scoring:
+  high_value:
+    criteria:
+      - enterprise_customer: 3
+      - expressed_budget: 2
+      - scheduled_meeting: 5
+      - multiple_touches: 1
+    threshold: 6
+
+  medium_value:
+    criteria:
+      - has_email: 1
+      - has_phone: 1
+      - showed_interest: 1
+    threshold: 2
+
+  low_value:
+    criteria:
+      - viewed_content: 0.5
+      - bounced_after_greeting: -1
+    threshold: 0
+
+appointment_booking:
+  availability:
+    business_hours: "09:00-17:00"
+    timezone: "US/Eastern"
+    buffer_minutes: 15
+    min_duration_minutes: 30
+    max_duration_minutes: 60
+
+  confirmation:
+    send_sms: true
+    send_email: true
+    reminder_minutes_before: 1440  # 24 hours
+
+escalation_rules:
+  - condition: "support_request_and_no_solution"
+    action: "transfer_to_human"
+    priority: "high"
+
+  - condition: "customer_frustrated_or_angry"
+    action: "transfer_to_supervisor"
+    priority: "critical"
+
+  - condition: "multiple_failed_attempts"
+    action: "schedule_callback"
+    priority: "medium"

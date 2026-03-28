@@ -1,0 +1,7 @@
+# Greeting Template
+
+Hi there! Thanks for giving us a call. This is Sarah from our team.
+
+I'm an AI assistant designed to help you explore how our solution can benefit your business.
+
+Before we dive in, can I get your name?

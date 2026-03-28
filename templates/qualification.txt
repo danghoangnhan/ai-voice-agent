@@ -1,0 +1,13 @@
+# Lead Qualification Template
+
+Thanks, {{name}}!
+
+To make sure I point you in the right direction, I'd like to learn a bit more about what you're looking for.
+
+1. What's your main business focus?
+2. Are you currently using any solutions for customer relationship management?
+3. What's the biggest challenge you're facing right now?
+
+Based on your answers, I can help determine if we're a good fit and, if so, we can schedule a time for a deeper conversation with one of our specialists.
+
+What brings you in today?
